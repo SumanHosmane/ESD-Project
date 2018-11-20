@@ -1,0 +1,130 @@
+#include<stdio.h>
+#include<mcs51/8051.h>
+#include<mcs51/8052.h>
+#include<mcs51/at89c51ed2.h>
+#include <reg51.h>
+
+#define motor1 P1_6             //LEFT WHEEL
+#define motor2 P1_7             //RIGHT WHEEL
+
+char getchar ()
+{
+    while (!RI);
+	RI = 0;
+	return SBUF;
+}
+
+void putchar(char c)
+{
+    while(!TI);
+    SBUF=c;
+    TI=0;
+}
+
+void delay(unsigned int s)
+{
+    unsigned int i;
+    unsigned int j;
+    while(s!=0)
+    {
+        for(i=0;i<1000;i++)
+        {
+            for(j=0;j<1000;j++);
+        }
+        s--;
+    }
+}
+
+void serial_init()
+{
+    SCON = 0X50;
+    TMOD = 0X20;
+    TH1 = 0X0FD;
+    TR1 = 1;
+    TI = 1;
+}
+
+char UART_RxChar()
+{
+	while(RI==0);
+	RI=0;
+	return SBUF;
+}
+
+void stop()
+{
+	motor1=0;
+	motor2=0;
+}
+
+void forward()
+{
+	motor1=1;
+	motor2=1;
+}
+
+void right()
+{
+	motor1=1;
+	motor2=0;
+}
+
+void left()
+{
+	motor1=0;
+	motor2=1;
+}
+
+
+void main()
+{
+	char mybyte;
+
+	stop();
+
+	serial_init();
+
+	while(1)
+	{
+		while(RI==0);
+		mybyte=SBUF;
+		RI=0;
+
+		switch(mybyte)
+        {
+			case 'f':
+			{
+				printf_tiny("\n\rMoving FORWARD\n\r");
+				forward();
+				printf_tiny("\n\rReturned from FORWARD\n\r");
+				break;
+			}
+			case 'l':
+			{
+				printf_tiny("\n\rMoving LEFT\n\r");
+				left();
+				printf_tiny("\n\rReturned from LEFT\n\r");
+				break;
+			}
+			case 'r':
+			{
+				printf_tiny("\n\rMoving RIGHT\n\r");
+				right();
+				printf_tiny("\n\rReturned from RIGHT\n\r");
+				break;
+			}
+			case 's':
+			{
+				printf_tiny("\n\rSTOPPING\n\r");
+				stop();
+				printf_tiny("\n\rReturned from STOP\n\r");
+				break;
+			}
+			default:
+			{
+				printf_tiny("\n\rInvalid input!Please enter again\n\r");
+				break;
+			}
+        }
+	}
+}
